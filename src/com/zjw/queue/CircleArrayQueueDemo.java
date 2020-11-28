@@ -4,13 +4,15 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /**
- * 使用数组模拟队列
+ * 使用数组模拟环形队列，
+ * 优点：数组可以循环使用
+ * 缺点：数组中有一个位置不能使用
  * @author 朱俊伟
- * @date 2020/11/27
+ * @date 2020/11/28
  */
-public class ArrayQueueDemo {
+public class CircleArrayQueueDemo {
     public static void main(String[] args) {
-        Queue queue = new Queue(5);
+        CircleArray queue = new CircleArray(5);
         Scanner scanner = new Scanner(System.in);
         boolean flag = true;
         while (flag){
@@ -63,14 +65,13 @@ public class ArrayQueueDemo {
             e.printStackTrace();
         }
     }
-
-
 }
 
+
 /**
- * 模拟队列的类
+ * 模拟环形队列的类
  */
-class Queue{
+class CircleArray{
 
     /**
      * 指向队列的尾部
@@ -88,13 +89,19 @@ class Queue{
     private final int[] array;
 
     /**
-     * 队列初始化
-     * @param queueMaxSize 定义队列的初始化容量
+     * 队列的大小
      */
-    Queue(int queueMaxSize) {
-        array = new int[queueMaxSize];
-        rear = -1;
-        front = -1;
+    private final int maxSize;
+
+    /**
+     * 队列初始化
+     * @param maxSize 定义队列的初始化容量
+     */
+    CircleArray(int maxSize) {
+        this.maxSize = maxSize;
+        array = new int[maxSize];
+        rear = 0;
+        front = 0;
     }
 
     /**
@@ -110,7 +117,7 @@ class Queue{
      * @return true为满 false不满
      */
     public boolean isFull(){
-        return rear == array.length-1;
+        return (rear  + 1) % maxSize == front;
     }
 
     /**
@@ -122,8 +129,8 @@ class Queue{
         if (isFull()){
             System.out.println("队列满，不能添加数据");
         } else {
-            rear ++ ;
             array[rear] = data;
+            rear = (rear+1)%maxSize ;
         }
     }
 
@@ -136,8 +143,9 @@ class Queue{
         if (isEmpty()){
             throw new RuntimeException("队列为空，不能取数据");
         } else {
-            front ++ ;
-            return array[front];
+            int value = array[front];
+            front = (front + 1) % maxSize ;
+            return value;
         }
     }
 
@@ -150,7 +158,7 @@ class Queue{
         if (isEmpty()){
             throw new RuntimeException("队列为空，不能取数据");
         } else {
-            return array[front+1];
+            return array[front];
         }
     }
 
@@ -162,8 +170,18 @@ class Queue{
         if (isEmpty()){
             return "队列为空";
         }
-        int[] subArray = Arrays.copyOfRange(array, front+1, rear+1);
+        int[] subArray;
+        if (rear>front){
+            subArray = Arrays.copyOfRange(array, front, rear);
+        }else {
+            int[] subFrontArray = Arrays.copyOfRange(array,front,maxSize);
+            int[] subRearArray = Arrays.copyOfRange(array,0,rear);
+            subArray = new int[subFrontArray.length + subRearArray.length];
+            System.arraycopy(subFrontArray,0,subArray,0,subFrontArray.length);
+            System.arraycopy(subRearArray,0,subArray,subFrontArray.length,subRearArray.length);
+        }
         return Arrays.toString(subArray);
     }
 
 }
+
